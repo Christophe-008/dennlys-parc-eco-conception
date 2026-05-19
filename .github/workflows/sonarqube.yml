@@ -50,6 +50,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-report
-          path: artifacts/lighthouse
+          name: lighthouse-report-raw
+          path: .lighthouseci
           if-no-files-found: error
