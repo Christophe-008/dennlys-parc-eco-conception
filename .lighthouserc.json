@@ -1,0 +1,19 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npm run serve:lhci",
+      "startServerReadyPattern": "http://localhost:5173",
+      "url": [
+        "http://localhost:5173/"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "chromeFlags": "--no-sandbox"
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "artifacts/lighthouse"
+    }
+  }
+}
