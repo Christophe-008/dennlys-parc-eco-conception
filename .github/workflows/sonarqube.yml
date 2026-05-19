@@ -53,20 +53,23 @@ jobs:
 
       - name: Add Lighthouse report link
         if: always()
-        run: |
-          links='${{ steps.lighthouse.outputs.links }}'
-          if [ -z "$links" ] || [ "$links" = "null" ]; then
-            echo "No Lighthouse public report link found" >&2
-            exit 1
-          fi
-          {
-            echo "### Lighthouse"
-            echo ""
-            echo "$links" | node -e "
-              const fs = require('fs');
-              const links = JSON.parse(fs.readFileSync(0, 'utf8'));
-              for (const [url, report] of Object.entries(links)) {
-                console.log('- [' + url + '](' + report + ')');
-              }
-            "
-          } >> "$GITHUB_STEP_SUMMARY"
+        uses: actions/github-script@v7
+        env:
+          LIGHTHOUSE_LINKS: ${{ steps.lighthouse.outputs.links }}
+        with:
+          script: |
+            const fs = require('fs')
+            const linksRaw = process.env.LIGHTHOUSE_LINKS
+
+            if (!linksRaw || linksRaw === 'null') {
+              core.setFailed('No Lighthouse public report link found')
+              return
+            }
+
+            const links = JSON.parse(linksRaw)
+            const lines = ['### Lighthouse', '']
+            for (const [url, report] of Object.entries(links)) {
+              lines.push(`- [${url}](${report})`)
+            }
+
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`)
