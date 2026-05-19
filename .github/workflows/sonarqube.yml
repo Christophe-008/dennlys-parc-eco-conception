@@ -43,14 +43,30 @@ jobs:
       - run: npm install
       - run: npm run build --if-present
 
-      - name: Run Lighthouse CI
-        run: npx @lhci/cli@0.15.x autorun
-
-      - name: Upload Lighthouse report
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Run Lighthouse
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18
         with:
-          name: lighthouse-report-raw
-          path: .lighthouseci
-          include-hidden-files: true
-          if-no-files-found: error
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: false
+          temporaryPublicStorage: true
+
+      - name: Add Lighthouse report link
+        if: always()
+        run: |
+          links='${{ steps.lighthouse.outputs.links }}'
+          if [ -z "$links" ] || [ "$links" = "null" ]; then
+            echo "No Lighthouse public report link found" >&2
+            exit 1
+          fi
+          {
+            echo "### Lighthouse"
+            echo ""
+            echo "$links" | node -e "
+              const fs = require('fs');
+              const links = JSON.parse(fs.readFileSync(0, 'utf8'));
+              for (const [url, report] of Object.entries(links)) {
+                console.log('- [' + url + '](' + report + ')');
+              }
+            "
+          } >> \"$GITHUB_STEP_SUMMARY\"
