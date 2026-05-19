@@ -52,4 +52,5 @@ jobs:
         with:
           name: lighthouse-report-raw
           path: .lighthouseci
+          include-hidden-files: true
           if-no-files-found: error
