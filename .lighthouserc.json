@@ -12,8 +12,7 @@
       }
     },
     "upload": {
-      "target": "filesystem",
-      "outputDir": "artifacts/lighthouse"
+      "target": "temporary-public-storage"
     }
   }
 }
