@@ -14,13 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install
-      - run: npm run build --if-present
-      - run: npm test --if-present
+      - run: pnpm install
+      - run: pnpm run build --if-present
+      - run: pnpm test --if-present
 
       - name: SonarQube scan
         uses: SonarSource/sonarqube-scan-action@v5
@@ -36,16 +40,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install
+      - run: pnpm install
 
       - name: Run Lighthouse CI
-        run: |
-          npm install -g @lhci/cli
-          lhci autorun || true
+        run: pnpm dlx @lhci/cli autorun || true
 
       - name: Upload Lighthouse report
         uses: actions/upload-artifact@v4
