@@ -69,4 +69,4 @@ jobs:
                 console.log('- [' + url + '](' + report + ')');
               }
             "
-          } >> \"$GITHUB_STEP_SUMMARY\"
+          } >> "$GITHUB_STEP_SUMMARY"
