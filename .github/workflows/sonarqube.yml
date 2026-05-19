@@ -6,6 +6,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: lighthouse-pages
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Code quality with SonarQube
@@ -41,14 +50,55 @@ jobs:
           node-version: 20
 
       - run: npm install
+      - run: npm run build --if-present
 
-      - name: Run Lighthouse CI
+      - name: Start backend
+        run: npm run start --workspace backend &
+
+      - name: Start frontend
+        run: npm run dev --workspace frontend -- --host 0.0.0.0 &
+
+      - name: Wait for application
+        run: npx wait-on http://127.0.0.1:4100/api/shop/home http://127.0.0.1:5173
+
+      - name: Generate Lighthouse HTML report
         run: |
-          npm install -g @lhci/cli
-          lhci autorun || true
+          mkdir -p artifacts/lighthouse
+          npx lighthouse http://127.0.0.1:5173 \
+            --chrome-flags="--headless --no-sandbox" \
+            --output html \
+            --output json \
+            --output-path artifacts/lighthouse/report
+          cp artifacts/lighthouse/report.html artifacts/lighthouse/index.html
 
       - name: Upload Lighthouse report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-report
-          path: .lighthouseci
+          name: lighthouse-report-html
+          path: artifacts/lighthouse
+          if-no-files-found: error
+
+      - name: Setup Pages
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/lighthouse
+
+  publish-lighthouse:
+    name: Publish Lighthouse report
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: eco-budget
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
