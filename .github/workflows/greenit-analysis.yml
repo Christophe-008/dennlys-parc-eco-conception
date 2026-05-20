@@ -30,6 +30,7 @@ jobs:
         run: |
           mkdir -p artifacts/greenit/input artifacts/greenit/output
           cp .github/greenit/scenarios.yaml artifacts/greenit/input/url.yaml
+          chmod -R 777 artifacts/greenit
 
           npm run serve:lhci > artifacts/greenit/app.log 2>&1 &
           APP_PID=$!
