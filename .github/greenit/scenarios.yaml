@@ -1,0 +1,5 @@
+- name: "Accueil"
+  url: "http://127.0.0.1:5173/"
+  waitForSelector: ".shop-product-card"
+  waitForTimeout: 1500
+  screenshot: "home.png"

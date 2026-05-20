@@ -14,11 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Coucou demo
+        run: |
+          echo "coucou de demo depuis .github/workflows/sonarqube.yml"
+          echo "### Coucou demo" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Le workflow SonarQube est bien declenche." >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/setup-node@v5
         with:
           node-version: 24
 
-      - run: npm install
+      - run: npm ci
       - run: npm run build --if-present
       - run: npm test --if-present
 
@@ -40,7 +47,7 @@ jobs:
         with:
           node-version: 24
 
-      - run: npm install
+      - run: npm ci
       - run: npm run build --if-present
 
       - name: Run Lighthouse
