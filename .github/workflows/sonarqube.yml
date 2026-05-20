@@ -6,30 +6,33 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: responsible-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Code quality with SonarQube
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Coucou demo
-        run: |
-          echo "coucou de demo depuis .github/workflows/sonarqube.yml"
-          echo "### Coucou demo" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Le workflow SonarQube est bien declenche." >> "$GITHUB_STEP_SUMMARY"
-
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
 
       - run: npm ci
       - run: npm run build --if-present
       - run: npm test --if-present
 
       - name: SonarQube scan
+        if: ${{ secrets.SONAR_TOKEN != '' && secrets.SONAR_HOST_URL != '' }}
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -39,6 +42,7 @@ jobs:
     name: Eco/performance budget
     runs-on: ubuntu-latest
     needs: quality
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v5
@@ -46,6 +50,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
 
       - run: npm ci
       - run: npm run build --if-present
